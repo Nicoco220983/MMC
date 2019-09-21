@@ -1,5 +1,7 @@
 CC = gcc
 CFLAGS = -std=c11
+CFLAGS += `GraphicsMagickWand-config --cflags --cppflags`
+CFLAGS += `GraphicsMagickWand-config --ldflags --libs`
 
 obj/%.o: src/%.c
 	$(CC) -c $(CFLAGS) -I. -o $@ $<
