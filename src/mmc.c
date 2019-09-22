@@ -18,7 +18,8 @@
 #include <dirent.h>
 #include <ftw.h>
 
-#include "compress_image.h"
+#include "mmc_context.h"
+#include "image_compressor.h"
 
 #ifndef USE_FDS
 #define USE_FDS 15
@@ -28,7 +29,7 @@ const char* usage = "ccm [-i INPUT_PATH]\n";
 
 void exitBadArg(){
 	printf("ERROR: Bad arguments.\n");
-	printf(usage);
+	printf("%s", usage);
 	exit(1);
 }
 
@@ -72,41 +73,44 @@ const char* getExt(const char* path){
 	return res;
 }
 
-void compressVideo(const char* path){
+void compressVideo(MmcContext* ctx, const char* path){
 	printf("Compress video: %s\n", path);
 }
 
-void compressFile(const char* path){
+void compressFile(MmcContext* ctx, const char* path){
 	const char* ext = getExt(path);
 	if(isImage(ext)){
-		compressImage(path);
+		compressImage(ctx, path);
 	} else if(isVideo(ext)){
-		compressVideo(path);
+		compressVideo(ctx, path);
 	} else {
 		printf("Ignored file: %s\n", path);
 	}
 }
 
-void compressDir(const char* path){
+void compressDir(MmcContext* ctx, const char* path){
 	int callback(const char* filepath, const struct stat *info,
 	const int typeflag, struct FTW *pathinfo){
 		if(isFile(filepath))
-			compressFile(filepath);
+			compressFile(ctx, filepath);
 		return 0;
 	}
 	nftw(path, callback, USE_FDS, FTW_PHYS);
 }
 
-void compressAny(const char* path){
+void compressAny(MmcContext* ctx, const char* path){
 	if(isDir(path)){
-		compressDir(path);
+		compressDir(ctx, path);
 	} else if(isFile(path)){
-		compressFile(path);
+		compressFile(ctx, path);
 	} else exitErr("Input file not found.");
 }
 
 int main(int argc, char **argv){
-	char* inputPath = NULL;
+	MmcContext ctx;
+	const char* inputPath = NULL;
+	initMmcContext(&ctx);
+
 	for(int i=0; i<argc; ++i){
 		const char* arg = argv[i];
 		if((strcmp("-i", arg) == 0) || (strcmp("--input", arg) == 0)){
@@ -114,6 +118,12 @@ int main(int argc, char **argv){
 		}
 	}
 	if(inputPath == NULL) exitBadArg();
-	compressAny(inputPath);
+
+	newImageCompressor(&ctx);
+
+	compressAny(&ctx, inputPath);
+
+	delImageCompressor(&ctx);
+
 	return 0;
 }

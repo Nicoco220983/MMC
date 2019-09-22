@@ -1,1 +1,0 @@
-void compressImage(const char* path);
