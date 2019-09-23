@@ -1,12 +1,13 @@
-#ifndef IMAGE_COMPRESSOR_H_
-#define IMAGE_COMPRESSOR_H_
+#ifndef MMC_IMAGE_COMPRESSOR_H_
+#define MMC_IMAGE_COMPRESSOR_H_
 
 #include "mmc_context.h"
+#include <wand/magick_wand.h>
 
-void newImageCompressor(MmcContext*);
+MagickWand* NewMmcImageCompressor();
 
-void delImageCompressor(MmcContext*);
+void DelMmcImageCompressor(MagickWand*);
 
-void compressImage(MmcContext*, const char*);
+void MmcCompressImage(MagickWand* wand, MmcContext* ctx, const char* inputPath, const char* outputPath);
 
 #endif

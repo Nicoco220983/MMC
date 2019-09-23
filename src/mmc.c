@@ -17,12 +17,20 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <ftw.h>
+#include <libgen.h>
 
+#include "utils.h"
 #include "mmc_context.h"
 #include "image_compressor.h"
 
 #ifndef USE_FDS
 #define USE_FDS 15
+#endif
+
+#ifdef _WIN32
+    #define MMC_FS_SEP '\\'
+#else
+    #define MMC_FS_SEP '/'
 #endif
 
 const char* usage = "ccm [-i INPUT_PATH]\n";
@@ -73,26 +81,53 @@ const char* getExt(const char* path){
 	return res;
 }
 
-void compressVideo(MmcContext* ctx, const char* path){
-	printf("Compress video: %s\n", path);
+void compressVideo(MmcContext* ctx, const char* inputPath, const char* outputPath){
+	printf("Compress video: %s\n", inputPath);
+}
+
+bool calcOutputPath(MmcContext* ctx, const char* inputPath, char* outputPath){
+	int outputMode = ctx->outputMode;
+	if(outputMode == MMC_OUTPUT_MODE_COPY_FILE){
+		strcpy(outputPath, ctx->outputPath);
+	} else if(outputMode == MMC_OUTPUT_MODE_COPY_DIR){
+		char relPath[1024];
+		if(removeStartPath(inputPath, ctx->inputPath, relPath)){
+			sprintf(outputPath, "%s%c%s", ctx->outputPath, MMC_FS_SEP, relPath);
+		} else {
+			printf("[ERROR] Failed to calc outputPath for %s\n", inputPath);
+			return false;
+		}
+	} else if(outputMode == MMC_OUTPUT_MODE_OVERWRITE){
+		sprintf(outputPath, "%s.tmp", inputPath);
+	}
+	printf("calcOutputPath: from %s to %s\n", inputPath, outputPath);
+	return true;
 }
 
 void compressFile(MmcContext* ctx, const char* path){
+	printf("Compress file: %s\n", path);
 	const char* ext = getExt(path);
-	if(isImage(ext)){
-		compressImage(ctx, path);
-	} else if(isVideo(ext)){
-		compressVideo(ctx, path);
-	} else {
-		printf("Ignored file: %s\n", path);
+	char outputPath[1024];
+	if(calcOutputPath(ctx, path, outputPath)){
+		char outputPath2[1024];
+		strcpy(outputPath2, outputPath);
+		mkdirp(dirname(outputPath2));
+		if(isImage(ext)){
+			MmcCompressImage(ctx->imageCompressor, ctx, path, outputPath);
+		} else if(isVideo(ext)){
+			compressVideo(ctx, path, outputPath);
+		} else {
+			printf("Ignored file: %s\n", path);
+		}
 	}
 }
 
 void compressDir(MmcContext* ctx, const char* path){
 	int callback(const char* filepath, const struct stat *info,
 	const int typeflag, struct FTW *pathinfo){
-		if(isFile(filepath))
+		if(isFile(filepath)){
 			compressFile(ctx, filepath);
+		}
 		return 0;
 	}
 	nftw(path, callback, USE_FDS, FTW_PHYS);
@@ -119,11 +154,12 @@ int main(int argc, char **argv){
 	}
 	if(inputPath == NULL) exitBadArg();
 
-	newImageCompressor(&ctx);
+	strcpy(ctx.inputPath, inputPath);
+	ctx.imageCompressor = NewMmcImageCompressor();
 
 	compressAny(&ctx, inputPath);
 
-	delImageCompressor(&ctx);
+	DelMmcImageCompressor(ctx.imageCompressor);
 
 	return 0;
 }
