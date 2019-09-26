@@ -19,37 +19,15 @@
 #include <ftw.h>
 #include <libgen.h>
 
+#include "mmc.h"
 #include "utils.h"
 #include "mmc_context.h"
+#include "mmc_thread_context.h"
 #include "image_compressor.h"
 
 #ifndef USE_FDS
 #define USE_FDS 15
 #endif
-
-#ifdef _WIN32
-    #define MMC_FS_SEP '\\'
-#else
-    #define MMC_FS_SEP '/'
-#endif
-
-const char* usage = "ccm [-i INPUT_PATH]\n";
-
-void exitBadArg(){
-	printf("ERROR: Bad arguments.\n");
-	printf("%s", usage);
-	exit(1);
-}
-
-void exitErr(const char* msg){
-	printf("ERROR: %s\n", msg);
-	exit(1);
-}
-
-char* getArg(int i, int argc, char **argv){
-	if(i>=argc) exitBadArg();
-	return argv[i];
-}
 
 bool isDir(const char* path){
 	struct stat sb;
@@ -81,18 +59,18 @@ const char* getExt(const char* path){
 	return res;
 }
 
-void compressVideo(MmcContext* ctx, const char* inputPath, const char* outputPath){
+void compressVideo(MmcThreadContext* tCtx, const char* inputPath, const char* outputPath){
 	printf("Compress video: %s\n", inputPath);
 }
 
-bool calcOutputPath(MmcContext* ctx, const char* inputPath, char* outputPath){
+bool calcOutputPath(const MmcContext* ctx, const char* inputPath, char* outputPath){
 	int outputMode = ctx->outputMode;
 	if(outputMode == MMC_OUTPUT_MODE_COPY_FILE){
 		strcpy(outputPath, ctx->outputPath);
 	} else if(outputMode == MMC_OUTPUT_MODE_COPY_DIR){
 		char relPath[1024];
 		if(removeStartPath(inputPath, ctx->inputPath, relPath)){
-			sprintf(outputPath, "%s%c%s", ctx->outputPath, MMC_FS_SEP, relPath);
+			sprintf(outputPath, "%s%c%s", ctx->outputPath, FS_SEP, relPath);
 		} else {
 			printf("[ERROR] Failed to calc outputPath for %s\n", inputPath);
 			return false;
@@ -104,62 +82,75 @@ bool calcOutputPath(MmcContext* ctx, const char* inputPath, char* outputPath){
 	return true;
 }
 
-void compressFile(MmcContext* ctx, const char* path){
+void compressFile(MmcThreadContext* tCtx, const char* path){
 	printf("Compress file: %s\n", path);
 	const char* ext = getExt(path);
 	char outputPath[1024];
-	if(calcOutputPath(ctx, path, outputPath)){
+	if(calcOutputPath(tCtx->ctx, path, outputPath)){
 		char outputPath2[1024];
 		strcpy(outputPath2, outputPath);
 		mkdirp(dirname(outputPath2));
 		if(isImage(ext)){
-			MmcCompressImage(ctx->imageCompressor, ctx, path, outputPath);
+			MmcCompressImage(tCtx->imageCompressor, tCtx->ctx, path, outputPath);
 		} else if(isVideo(ext)){
-			compressVideo(ctx, path, outputPath);
+			compressVideo(tCtx, path, outputPath);
 		} else {
 			printf("Ignored file: %s\n", path);
 		}
 	}
 }
 
-void compressDir(MmcContext* ctx, const char* path){
+void compressDir(MmcThreadContext* tCtx, const char* path){
 	int callback(const char* filepath, const struct stat *info,
 	const int typeflag, struct FTW *pathinfo){
 		if(isFile(filepath)){
-			compressFile(ctx, filepath);
+			compressFile(tCtx, filepath);
 		}
 		return 0;
 	}
 	nftw(path, callback, USE_FDS, FTW_PHYS);
 }
 
-void compressAny(MmcContext* ctx, const char* path){
+bool compressAny(MmcThreadContext* tCtx, const char* path){
 	if(isDir(path)){
-		compressDir(ctx, path);
+		compressDir(tCtx, path);
 	} else if(isFile(path)){
-		compressFile(ctx, path);
-	} else exitErr("Input file not found.");
+		compressFile(tCtx, path);
+	} else {
+		printErr("Input file not found.");
+		return false;
+	}
+	return true;
 }
 
-int main(int argc, char **argv){
-	MmcContext ctx;
-	const char* inputPath = NULL;
-	initMmcContext(&ctx);
+bool MmcCompress(MmcContext* ctx){
 
-	for(int i=0; i<argc; ++i){
-		const char* arg = argv[i];
-		if((strcmp("-i", arg) == 0) || (strcmp("--input", arg) == 0)){
-			inputPath = getArg(++i, argc, argv);
+	if(ctx->outputMode == MMC_OUTPUT_MODE_COPY_UNDEF){
+		if(isFile(ctx->inputPath)) ctx->outputMode = MMC_OUTPUT_MODE_COPY_FILE;
+		else if(isDir(ctx->inputPath)) ctx->outputMode = MMC_OUTPUT_MODE_COPY_DIR;
+		else {
+			printErr("Invalid input path.");
+			return false;
 		}
 	}
-	if(inputPath == NULL) exitBadArg();
+	if(ctx->outputMode != MMC_OUTPUT_MODE_OVERWRITE && ctx->outputPath == NULL){
+		printErr("outputPath must be provided");
+		return false;
+	}
+	if(ctx->imgMinLength == 0){
+		printErr("invalid image min length");
+		return false;
+	}
 
-	strcpy(ctx.inputPath, inputPath);
-	ctx.imageCompressor = NewMmcImageCompressor();
+	MmcThreadContext tCtx;
+	initMmcThreadContext(&tCtx);
 
-	compressAny(&ctx, inputPath);
+	tCtx.ctx = ctx;
+	tCtx.imageCompressor = NewMmcImageCompressor();
 
-	DelMmcImageCompressor(ctx.imageCompressor);
+	bool res = compressAny(&tCtx, ctx->inputPath);
 
-	return 0;
+	DelMmcImageCompressor(tCtx.imageCompressor);
+
+	return res;
 }

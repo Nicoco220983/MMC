@@ -12,29 +12,29 @@ void DelMmcImageCompressor(MagickWand* wand){
 	//MagickWandTerminus();
 }
 
-void determineNewSize(MagickWand* wand, MmcContext* ctx, unsigned int* oWidth, unsigned int* oHeight){
-	unsigned int width = MagickGetImageWidth(wand);
-	unsigned int height = MagickGetImageHeight(wand);
-	unsigned int minSize = ctx->imageMinSize;
+void determineNewSize(MagickWand* wand, const MmcContext* ctx, size_t* oWidth, size_t* oHeight){
+	size_t width = MagickGetImageWidth(wand);
+	size_t height = MagickGetImageHeight(wand);
+	size_t minLength = ctx->imgMinLength;
 	if(width > height){
-		*oWidth = (unsigned int)( ((float)width) / ( ((float)height) / (float)minSize) );
-		*oHeight = minSize;
+		*oWidth = (size_t)( ((float)width) / ( ((float)height) / (float)minLength) );
+		*oHeight = minLength;
 	} else {
-		*oWidth = minSize;
-		*oHeight = (unsigned int)( ((float)height) / ( ((float)width) / (float)minSize) );
+		*oWidth = minLength;
+		*oHeight = (size_t)( ((float)height) / ( ((float)width) / (float)minLength) );
 	}
 
 }
 
-void MmcCompressImage(MagickWand* wand, MmcContext* ctx, const char* inputPath, const char* outputPath){
+void MmcCompressImage(MagickWand* wand, const MmcContext* ctx, const char* inputPath, const char* outputPath){
 	unsigned int status;
 	status = MagickReadImage(wand, inputPath);
   	if(status == MagickTrue) {
   		MagickResetIterator(wand);
   		while (MagickNextImage(wand) != MagickFalse){
-			unsigned int newWidth, newHeight;
+			size_t newWidth, newHeight;
 			determineNewSize(wand, ctx, &newWidth, &newHeight);
-			printf("Compress image: %s into %s %ix%i\n", inputPath, outputPath, newWidth, newHeight);
+			printf("Compress image: %s into %s %ix%i\n", inputPath, outputPath, (int)newWidth, (int)newHeight);
     		status = MagickResizeImage(wand, newWidth, newHeight, LanczosFilter, 1.0);
 		  }
 	}

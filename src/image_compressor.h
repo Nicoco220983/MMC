@@ -8,6 +8,6 @@ MagickWand* NewMmcImageCompressor();
 
 void DelMmcImageCompressor(MagickWand*);
 
-void MmcCompressImage(MagickWand* wand, MmcContext* ctx, const char* inputPath, const char* outputPath);
+void MmcCompressImage(MagickWand* wand, const MmcContext* ctx, const char* inputPath, const char* outputPath);
 
 #endif

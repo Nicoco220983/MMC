@@ -43,3 +43,7 @@ bool removeStartPath(const char* str, const char* start, char* res){
     }
     return false;
 }
+
+void printErr(const char* msg){
+    printf("ERROR: %s\n", msg);
+}
