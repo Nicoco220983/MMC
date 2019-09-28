@@ -24,4 +24,6 @@ bool removeStartPath(const char* str, const char* start, char* res);
 
 void printErr(const char* msg);
 
+bool streqi(char const *a, char const *b);
+
 #endif

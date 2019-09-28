@@ -9,7 +9,7 @@
 
 #include "mmc.h"
 #include "utils.h"
-#include "mmc_context.h"
+#include "mmc_options.h"
 
 const char* usage = "ccm [-i INPUT_PATH]\n";
 
@@ -31,8 +31,8 @@ char* getArg(int i, int argc, char **argv){
 
 int main(int argc, char **argv){
 
-	MmcContext ctx;
-	initMmcContext(&ctx);
+	MmcOptions ctx;
+	initMmcOptions(&ctx);
 
 	for(int i=0; i<argc; ++i){
 		const char* arg = argv[i];
@@ -44,6 +44,18 @@ int main(int argc, char **argv){
 		}
 		if(streq("--overwrite", arg)){
 			ctx.outputMode = MMC_OUTPUT_MODE_OVERWRITE;
+		}
+		if(streq("-l", arg) || streq("--compression-level", arg)){
+			const char* val = getArg(++i, argc, argv);
+			if(streqi("S", val)){
+				ctx.compressionLevel = MMC_COMPRESSION_LEVEL_SMALL;
+			} else if(streqi("M", val)){
+				ctx.compressionLevel = MMC_COMPRESSION_LEVEL_MEDIUM;
+			} else if(streqi("L", val)){
+				ctx.compressionLevel = MMC_COMPRESSION_LEVEL_LARGE;
+			} else {
+				exitErr("Unknown value for compression-level.");
+			}
 		}
 		if(streq("--img-min-length", arg)){
 			ctx.imgMinLength = atoi(arg);

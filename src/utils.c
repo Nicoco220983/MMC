@@ -2,8 +2,8 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
 #include <sys/stat.h>
+#include <ctype.h>
 
 void mkdirp(const char *dir) {
         char tmp[256];
@@ -46,4 +46,16 @@ bool removeStartPath(const char* str, const char* start, char* res){
 
 void printErr(const char* msg){
     printf("ERROR: %s\n", msg);
+}
+
+bool streqi(char const *a, char const *b)
+{
+    if(strlen(a) != strlen(b))
+        return false;
+    for (;; a++, b++) {
+        int d = tolower((unsigned char)*a) - tolower((unsigned char)*b);
+        if (d != 0 || !*a)
+            return false;
+    }
+    return true;
 }

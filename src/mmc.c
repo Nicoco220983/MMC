@@ -21,8 +21,8 @@
 
 #include "mmc.h"
 #include "utils.h"
+#include "mmc_options.h"
 #include "mmc_context.h"
-#include "mmc_thread_context.h"
 #include "image_compressor.h"
 
 #ifndef USE_FDS
@@ -59,11 +59,11 @@ const char* getExt(const char* path){
 	return res;
 }
 
-void compressVideo(MmcThreadContext* tCtx, const char* inputPath, const char* outputPath){
+void compressVideo(MmcContext* tCtx, const char* inputPath, const char* outputPath){
 	printf("Compress video: %s\n", inputPath);
 }
 
-bool calcOutputPath(const MmcContext* ctx, const char* inputPath, char* outputPath){
+bool calcOutputPath(const MmcOptions* ctx, const char* inputPath, char* outputPath){
 	int outputMode = ctx->outputMode;
 	if(outputMode == MMC_OUTPUT_MODE_COPY_FILE){
 		strcpy(outputPath, ctx->outputPath);
@@ -82,7 +82,7 @@ bool calcOutputPath(const MmcContext* ctx, const char* inputPath, char* outputPa
 	return true;
 }
 
-void compressFile(MmcThreadContext* tCtx, const char* path){
+void compressFile(MmcContext* tCtx, const char* path){
 	printf("Compress file: %s\n", path);
 	const char* ext = getExt(path);
 	char outputPath[1024];
@@ -100,7 +100,7 @@ void compressFile(MmcThreadContext* tCtx, const char* path){
 	}
 }
 
-void compressDir(MmcThreadContext* tCtx, const char* path){
+void compressDir(MmcContext* tCtx, const char* path){
 	int callback(const char* filepath, const struct stat *info,
 	const int typeflag, struct FTW *pathinfo){
 		if(isFile(filepath)){
@@ -111,7 +111,7 @@ void compressDir(MmcThreadContext* tCtx, const char* path){
 	nftw(path, callback, USE_FDS, FTW_PHYS);
 }
 
-bool compressAny(MmcThreadContext* tCtx, const char* path){
+bool compressAny(MmcContext* tCtx, const char* path){
 	if(isDir(path)){
 		compressDir(tCtx, path);
 	} else if(isFile(path)){
@@ -123,7 +123,7 @@ bool compressAny(MmcThreadContext* tCtx, const char* path){
 	return true;
 }
 
-bool MmcCompress(MmcContext* ctx){
+bool MmcCompress(MmcOptions* ctx){
 
 	if(ctx->outputMode == MMC_OUTPUT_MODE_COPY_UNDEF){
 		if(isFile(ctx->inputPath)) ctx->outputMode = MMC_OUTPUT_MODE_COPY_FILE;
@@ -138,12 +138,16 @@ bool MmcCompress(MmcContext* ctx){
 		return false;
 	}
 	if(ctx->imgMinLength == 0){
-		printErr("invalid image min length");
-		return false;
+		if(ctx->compressionLevel == MMC_COMPRESSION_LEVEL_SMALL)
+			ctx->imgMinLength = 600;
+		else if(ctx->compressionLevel == MMC_COMPRESSION_LEVEL_MEDIUM)
+			ctx->imgMinLength = 800;
+		else if(ctx->compressionLevel == MMC_COMPRESSION_LEVEL_SMALL)
+			ctx->imgMinLength = 1024;
 	}
 
-	MmcThreadContext tCtx;
-	initMmcThreadContext(&tCtx);
+	MmcContext tCtx;
+	initMmcContext(&tCtx);
 
 	tCtx.ctx = ctx;
 	tCtx.imageCompressor = NewMmcImageCompressor();

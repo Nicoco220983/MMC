@@ -12,7 +12,7 @@ void DelMmcImageCompressor(MagickWand* wand){
 	//MagickWandTerminus();
 }
 
-void determineNewSize(MagickWand* wand, const MmcContext* ctx, size_t* oWidth, size_t* oHeight){
+void determineNewSize(MagickWand* wand, const MmcOptions* ctx, size_t* oWidth, size_t* oHeight){
 	size_t width = MagickGetImageWidth(wand);
 	size_t height = MagickGetImageHeight(wand);
 	size_t minLength = ctx->imgMinLength;
@@ -26,7 +26,7 @@ void determineNewSize(MagickWand* wand, const MmcContext* ctx, size_t* oWidth, s
 
 }
 
-void MmcCompressImage(MagickWand* wand, const MmcContext* ctx, const char* inputPath, const char* outputPath){
+void MmcCompressImage(MagickWand* wand, const MmcOptions* ctx, const char* inputPath, const char* outputPath){
 	unsigned int status;
 	status = MagickReadImage(wand, inputPath);
   	if(status == MagickTrue) {
