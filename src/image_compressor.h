@@ -3,11 +3,12 @@
 
 #include "mmc_options.h"
 #include <wand/magick_wand.h>
+#include <stdbool.h>
 
 MagickWand* NewMmcImageCompressor();
 
 void DelMmcImageCompressor(MagickWand*);
 
-void MmcCompressImage(MagickWand* wand, const MmcOptions* ctx, const char* inputPath, const char* outputPath);
+bool MmcCompressImage(MagickWand* wand, const MmcOptions* ctx, const char* inputPath, const char* outputPath);
 
 #endif

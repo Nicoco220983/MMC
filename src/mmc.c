@@ -17,7 +17,6 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <ftw.h>
-#include <libgen.h>
 
 #include "mmc.h"
 #include "utils.h"
@@ -59,8 +58,9 @@ const char* getExt(const char* path){
 	return res;
 }
 
-void compressVideo(MmcContext* tCtx, const char* inputPath, const char* outputPath){
+bool compressVideo(MmcContext* tCtx, const char* inputPath, const char* outputPath){
 	printf("Compress video: %s\n", inputPath);
+	return false;
 }
 
 bool calcOutputPath(const MmcOptions* ctx, const char* inputPath, char* outputPath){
@@ -78,24 +78,25 @@ bool calcOutputPath(const MmcOptions* ctx, const char* inputPath, char* outputPa
 	} else if(outputMode == MMC_OUTPUT_MODE_OVERWRITE){
 		sprintf(outputPath, "%s.tmp", inputPath);
 	}
-	printf("calcOutputPath: from %s to %s\n", inputPath, outputPath);
 	return true;
 }
 
 void compressFile(MmcContext* tCtx, const char* path){
-	printf("Compress file: %s\n", path);
 	const char* ext = getExt(path);
 	char outputPath[1024];
 	if(calcOutputPath(tCtx->ctx, path, outputPath)){
-		char outputPath2[1024];
-		strcpy(outputPath2, outputPath);
-		mkdirp(dirname(outputPath2));
+		mkfiledirp(outputPath);
+		bool OK = false;
 		if(isImage(ext)){
-			MmcCompressImage(tCtx->imageCompressor, tCtx->ctx, path, outputPath);
+			OK = MmcCompressImage(tCtx->imageCompressor, tCtx->ctx, path, outputPath);
 		} else if(isVideo(ext)){
-			compressVideo(tCtx, path, outputPath);
+			OK = compressVideo(tCtx, path, outputPath);
 		} else {
 			printf("Ignored file: %s\n", path);
+		}
+		if(tCtx->ctx->outputMode == MMC_OUTPUT_MODE_OVERWRITE){
+			if(OK) rename(outputPath, path);
+			else remove(outputPath);
 		}
 	}
 }

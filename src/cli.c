@@ -11,7 +11,14 @@
 #include "utils.h"
 #include "mmc_options.h"
 
-const char* usage = "ccm [-i INPUT_PATH]\n";
+const char* usage = \
+  "ccm [OPTIONS]\n"
+  "  -h/--help: Print this help.\n"
+  "  -i/--input PATH: Input path to compress (file or dir).\n"
+  "  -o/--output PATH: compression destination.\n"
+  "  --overwrite: Overwrite the input content.\n"
+  "  -l/--compression-level LEVEL: Compression level (Possible value: S, M, L).\n"
+  "  --img-min-length: Image minimum length.\n";
 
 void exitBadArg(){
 	printf("ERROR: Bad arguments.\n");
@@ -36,6 +43,10 @@ int main(int argc, char **argv){
 
 	for(int i=0; i<argc; ++i){
 		const char* arg = argv[i];
+		if(streq("-h", arg) || streq("--help", arg)){
+			printf("%s", usage);
+			exit(0);
+		}
 		if(streq("-i", arg) || streq("--input", arg)){
 			strcpy(ctx.inputPath, getArg(++i, argc, argv));
 		}

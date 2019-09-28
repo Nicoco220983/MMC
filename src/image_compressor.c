@@ -26,7 +26,7 @@ void determineNewSize(MagickWand* wand, const MmcOptions* ctx, size_t* oWidth, s
 
 }
 
-void MmcCompressImage(MagickWand* wand, const MmcOptions* ctx, const char* inputPath, const char* outputPath){
+bool MmcCompressImage(MagickWand* wand, const MmcOptions* ctx, const char* inputPath, const char* outputPath){
 	unsigned int status;
 	status = MagickReadImage(wand, inputPath);
   	if(status == MagickTrue) {
@@ -42,5 +42,7 @@ void MmcCompressImage(MagickWand* wand, const MmcOptions* ctx, const char* input
 		status = MagickWriteImages(wand, outputPath, MagickTrue);
 	if(status == MagickFalse) {
 		printf("[ERROR] Failed to compress image: %s\n", inputPath);
+		return false;
 	}
+	return true;
 }

@@ -4,13 +4,15 @@
 #include <stdio.h>
 #include <sys/stat.h>
 #include <ctype.h>
+#include <libgen.h>
 
-void mkdirp(const char *dir) {
+
+void mkdirp(const char *path) {
         char tmp[256];
         char *p = NULL;
         size_t len;
 
-        snprintf(tmp, sizeof(tmp), "%s", dir);
+        snprintf(tmp, sizeof(tmp), "%s", path);
         len = strlen(tmp);
         if(tmp[len - 1] == '/')
                 tmp[len - 1] = 0;
@@ -23,6 +25,11 @@ void mkdirp(const char *dir) {
         mkdir(tmp, S_IRWXU);
 }
 
+void mkfiledirp(const char *path) {
+    char path2[PATH_LEN];
+    strcpy(path2, path);
+    mkdirp(dirname(path2));
+}
 
 bool startswith(const char* str, const char* start){
     size_t start_len = strlen(start);

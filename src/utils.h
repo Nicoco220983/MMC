@@ -16,7 +16,9 @@ static inline bool streq(const char* str1, const char* str2){
     return strcmp(str1, str2) == 0;
 }
 
-void mkdirp(const char *dir);
+void mkdirp(const char *path);
+
+void mkfiledirp(const char *path);
 
 bool startswith(const char* str, const char* start);
 
