@@ -7,8 +7,11 @@
 
 CC = gcc
 CFLAGS = -std=c11
-CFLAGS += `GraphicsMagickWand-config --cflags --cppflags`
-LIBS = `GraphicsMagickWand-config --ldflags --libs`
+CFLAGS += `GraphicsMagickWand-config --cflags --cppflags` -I/usr/local/include
+
+GRAPHICSMAGICK_LIBS := `GraphicsMagickWand-config --ldflags --libs`
+FFMPEG_LIBS := -L/usr/local/lib -l avfilter -l swscale -l avdevice -l avformat -l avcodec -l avutil -l swresample -lz -ldl -l:libbsd.so.0 -l rt -l bz2 -l xcb -l lzma -l Xau -l Xdmcp -l pthread -lm # -l avresample -l postproc
+LIBS := $(GRAPHICSMAGICK_LIBS) $(FFMPEG_LIBS)
 
 SRC_FILES := $(wildcard src/*.c)
 OBJ_FILES := $(patsubst src/%.c, obj/%.o, $(SRC_FILES))
