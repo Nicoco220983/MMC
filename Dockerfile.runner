@@ -1,0 +1,9 @@
+FROM ubuntu:18.04
+USER root
+
+COPY builder/install_os.sh /bin
+RUN bash /bin/install_os.sh
+
+RUN apt-get install imagemagick -y
+
+RUN apt-get install ffmpeg -y
