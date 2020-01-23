@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <cassert>
+#include <utime.h>
 
 #include "utils.hpp"
 
@@ -204,6 +205,19 @@ void mkdirp(const std::string& path, mode_t mode){
     mkdirp(fs::dirname(path).c_str(), mode);
     auto res = mkdir(path.c_str(), mode);
     if(res != 0) throw std::logic_error(concat({"Cannot to make dir: ", path}));
+}
+
+void dupTime(const std::string& iPath, const std::string& oPath){
+    struct stat st;
+    time_t mtime;
+    struct utimbuf new_times;
+
+    stat(iPath.c_str(), &st);
+    mtime = st.st_mtime; // seconds since the epoch
+
+    new_times.actime = st.st_atime; // keep atime unchanged
+    new_times.modtime = st.st_mtime;    // keep mtime unchanged
+    utime(oPath.c_str(), &new_times);
 }
 
 }

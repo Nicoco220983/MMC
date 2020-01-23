@@ -54,6 +54,8 @@ std::string dirname(const std::string& path);
 
 void mkdirp(const std::string& path, mode_t mode);
 
+void dupTime(const std::string& iPath, const std::string& oPath);
+
 }
 
 }

@@ -150,6 +150,7 @@ void _compressMedia(Context& ctx, const std::string& relPath){
 				_compressVideo(ctx, iPath, oTmpPath);
 			remove(oPath.c_str());
 			rename(oTmpPath.c_str(), oPath.c_str());
+			fs::dupTime(iPath, oPath);
 		}
 	} catch(const std::exception& exc) {
 		log(LogLevel::ERROR, ctx, exc.what());
@@ -157,6 +158,7 @@ void _compressMedia(Context& ctx, const std::string& relPath){
 	if(not fs::exists(oPath) && iPath!=oPath){
 		log(LogLevel::INFO, ctx, concat({"Copy file: ", iPath, " to ", oPath}));
 		fs::copy(iPath, oPath);
+		fs::dupTime(iPath, oPath);
 	}
 	ctx.currentPath = "";
 }
