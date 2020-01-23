@@ -25,9 +25,10 @@ bool _binExists(const Context& ctx, const std::string& name){
 Context::MediaType _getMediaExt(const std::string& name){
 	const char* ext = fs::getExt(name);
 	if(ext == nullptr) return Context::MediaType::NONE;
-	if(IMAGE_EXTS.find(ext) != IMAGE_EXTS.end())
+	std::string extLower = toLower(ext);
+	if(IMAGE_EXTS.find(extLower.c_str()) != IMAGE_EXTS.end())
 		return Context::MediaType::IMAGE;
-	if(VIDEO_EXTS.find(ext) != VIDEO_EXTS.end())
+	if(VIDEO_EXTS.find(extLower.c_str()) != VIDEO_EXTS.end())
 		return Context::MediaType::VIDEO;
 	return Context::MediaType::NONE;
 }
@@ -73,7 +74,7 @@ bool _isImageCompressed(const Context& ctx, const std::string& path){
 
 
 void _compressImage(Context& ctx, const std::string& iPath, const std::string& oPath){
-	std::cout << "Compress image: " << iPath << " to " << oPath << std::endl;
+	log(LogLevel::INFO, ctx, concat({"Compress image: ", iPath, " to ", oPath}));
 	std::stringstream resolution;
 	resolution << ctx.imgMinLength << 'x' << ctx.imgMinLength << ">";
 	exec(ctx, { "convert", iPath, "-resize", resolution.str(), oPath });
@@ -88,7 +89,7 @@ bool _isVideoCompressed(const Context& ctx, const std::string& path){
 		for(size_t i = 1; i<words.size(); ++i){
 			if(words[i] == "kb/s,"){
 				int bitrate = atoi(words[i-1].c_str());
-				return bitrate <= ctx.videoMinBitrate;
+				return bitrate <= ctx.videoBitrate;
 			}
 		}
 	}
@@ -97,8 +98,9 @@ bool _isVideoCompressed(const Context& ctx, const std::string& path){
 
 
 void _compressVideo(Context& ctx, const std::string& iPath, const std::string& oPath){
-	std::cout << "Compress video: " << iPath << " to " << oPath << std::endl;
-	exec(ctx, { "ffmpeg", "-i", iPath, "-b", std::to_string(ctx.videoMinBitrate)+"k", oPath });
+	log(LogLevel::INFO, ctx, concat({"Compress video: ", iPath, " to ", oPath}));
+	std::string stdout = exec(ctx, { "ffmpeg", "-i", iPath, "-c:v", "libx264", "-crf", std::to_string(ctx.videoCrf), oPath });
+	log(LogLevel::DEBUG, ctx, stdout);
 }
 
 
@@ -152,8 +154,10 @@ void _compressMedia(Context& ctx, const std::string& relPath){
 	} catch(const std::exception& exc) {
 		log(LogLevel::ERROR, ctx, exc.what());
 	}
-	if(not fs::exists(oPath) && iPath!=oPath)
+	if(not fs::exists(oPath) && iPath!=oPath){
+		log(LogLevel::INFO, ctx, concat({"Copy file: ", iPath, " to ", oPath}));
 		fs::copy(iPath, oPath);
+	}
 	ctx.currentPath = "";
 }
 
@@ -174,10 +178,28 @@ void execute(Context& ctx){
 			throw std::runtime_error("In copy mode, inputPath and outputPath cannot have same value. Use overwrite mode");
 	}
 
-	if(ctx.imgMinLength == 0)
-		ctx.imgMinLength = 600;
-	if(ctx.videoMinBitrate == 0)
-		ctx.videoMinBitrate = 200;
+	if(ctx.compressionlevel == Context::CompressionLevel::SMALL){
+		if(ctx.imgMinLength == 0)
+			ctx.imgMinLength = 800;
+		if(ctx.videoBitrate == 0)
+			ctx.videoBitrate = 1500;
+		if(ctx.videoCrf == 0)
+			ctx.videoCrf = 32;
+	} else if(ctx.compressionlevel == Context::CompressionLevel::MEDIUM){
+		if(ctx.imgMinLength == 0)
+			ctx.imgMinLength = 1024;
+		if(ctx.videoBitrate == 0)
+			ctx.videoBitrate = 2500;
+		if(ctx.videoCrf == 0)
+			ctx.videoCrf = 28;
+	} else if(ctx.compressionlevel == Context::CompressionLevel::LARGE){
+		if(ctx.imgMinLength == 0)
+			ctx.imgMinLength = 2018;
+		if(ctx.videoBitrate == 0)
+			ctx.videoBitrate = 5000;
+		if(ctx.videoCrf == 0)
+			ctx.videoCrf = 24;
+	}
 
 	FileType inputType = fs::getFileType(ctx.inputPath);
 	if(inputType == FileType::REG){

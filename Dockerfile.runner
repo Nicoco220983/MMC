@@ -6,4 +6,4 @@ RUN bash /bin/install_os.sh
 
 RUN apt-get install imagemagick -y
 
-RUN apt-get install ffmpeg -y
+RUN apt-get install ffmpeg x265 -y

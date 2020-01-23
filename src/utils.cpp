@@ -16,9 +16,14 @@ namespace mmc {
 
 void log(LogLevel logLevel, const Context& ctx, const std::string& text){
     if(logLevel == LogLevel::DEBUG){
+        if(ctx.logLevel != LogLevel::DEBUG) return;
         std::cout << "[DEBUG]";
     } else if(logLevel == LogLevel::INFO){
+        if(ctx.logLevel == LogLevel::ERROR) return;
         std::cout << "[INFO]";
+    } else if(logLevel == LogLevel::WARNING){
+        if(ctx.logLevel == LogLevel::ERROR) return;
+        std::cout << "[WARNING]";
     } else if(logLevel == LogLevel::ERROR){
         std::cout << "[ERROR]";
     }
@@ -97,17 +102,6 @@ std::string exec(const Context& ctx, const std::vector<std::string>& cmd){
     }
 }
 
-/*
-std::string exec(const std::vector<const char*>& cmd){
-    FILE* fp = popen(cmd);
-    char buffer[1000];
-    std::stringstream res;
-    while(fgets(buffer, 1000, fp) != NULL)
-        res << buffer;
-    pclose(fp);
-    return res.str()
-}
-*/
 std::string concat(const std::vector<std::string>& strs){
     size_t len = 0;
     for(auto& s : strs) len += s.size();
@@ -130,6 +124,20 @@ std::vector<std::string> split(const std::string& str, char del){
       if(not token.empty()) res.push_back(token);
    }
    return res;
+}
+
+std::string toLower(const std::string& str){
+    std::string res = str;
+    std::for_each(res.begin(), res.end(), [](char & c){
+        c = ::tolower(c);
+    });
+    return res;
+}
+
+bool iequals(const std::string& str1, const std::string& str2){
+    std::string lstr1 = toLower(str1);
+    std::string lstr2 = toLower(str2);
+    return str1 == str2;
 }
 
 

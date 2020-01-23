@@ -1,6 +1,5 @@
 #include <iostream>
 #include <vector>
-#include <boost/algorithm/string.hpp>
 
 #include "context.hpp"
 #include "utils.hpp"
@@ -15,16 +14,12 @@ const char* usage = \
   "  -i/--input PATH: Input path to compress (file or dir).\n"
   "  -o/--output PATH: compression destination.\n"
   "  --overwrite: Overwrite the input content.\n"
-  "  -l/--compression-level LEVEL: Compression level (Possible value: S, M, L).\n"
-  "  --img-min-length: Image minimum length.\n";
+  "  -c/--compression-level LEVEL: Compression level (Possible values: S, [M], L).\n"
+  "  --img-min-length: Image minimum length.\n"
+  "  --vid-bitrate: Video bitrate.\n"
+  "  --vid-crf: Video CRF.\n"
+  "  -l/--log-level LEVEL: Log level (Possible values: DEBUG, [INFO], ERROR).\n";
 
-
-/*
-void exitBadArg(){
-	printf("ERROR: Bad arguments.\n");
-	printf("%s", usage);
-	exit(1);
-}*/
 
 void _exitErr(const char* msg){
 	std::cerr << "[ERROR] " << msg << std::endl;
@@ -59,13 +54,13 @@ int main(int argc, char *argv[]){
 		else if(arg == "--overwrite"){
 			ctx.outputMode = Context::OutputMode::OVERWRITE;
 		}
-		else if(arg=="-l" || arg=="--compression-level"){
+		else if(arg=="-c" || arg=="--compression-level"){
 			const std::string val = _getArg(++i, argc, argv);
-			if(boost::iequals(val, "S")){
+			if(iequals(val, "S")){
 				ctx.compressionlevel = Context::CompressionLevel::SMALL;
-			} else if(boost::iequals(val, "M")){
+			} else if(iequals(val, "M")){
 				ctx.compressionlevel = Context::CompressionLevel::MEDIUM;
-			} else if(boost::iequals(val, "L")){
+			} else if(iequals(val, "L")){
 				ctx.compressionlevel = Context::CompressionLevel::LARGE;
 			} else {
 				_exitErr(concat({"Unknown value for compression-level: ", val.c_str()}).c_str());
@@ -73,6 +68,24 @@ int main(int argc, char *argv[]){
 		}
 		else if(arg=="--img-min-length"){
 			ctx.imgMinLength = atoi(_getArg(++i, argc, argv));
+		}
+		else if(arg=="--vid-bitrate"){
+			ctx.videoBitrate = atoi(_getArg(++i, argc, argv));
+		}
+		else if(arg=="--vid-crf"){
+			ctx.videoCrf = atoi(_getArg(++i, argc, argv));
+		}
+		else if(arg=="-l" || arg=="--log-level"){
+			const std::string val = _getArg(++i, argc, argv);
+			if(iequals(val, "DEBUG")){
+				ctx.logLevel = LogLevel::DEBUG;
+			} else if(iequals(val, "INFO")){
+				ctx.logLevel = LogLevel::INFO;
+			} else if(iequals(val, "ERROR")){
+				ctx.logLevel = LogLevel::ERROR;
+			} else {
+				_exitErr(concat({"Unknown value for log-level: ", val.c_str()}).c_str());
+			}
 		}
 		else
 			_exitErr(concat({"Unknown option: ", arg.c_str()}).c_str());

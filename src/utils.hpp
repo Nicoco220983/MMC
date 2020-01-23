@@ -19,7 +19,6 @@ const char DIR_SEP = '/';
 #endif
 
 enum class FileType { NONE, DIR, REG };
-enum class LogLevel { DEBUG, INFO, WARNING, ERROR };
 
 struct cstrless {
     inline  bool operator()(const char* a, const char* b) const {
@@ -32,6 +31,9 @@ std::string concat(const std::vector<std::string>& strs);
 std::vector<std::string> split(const std::string& str, char del);
 
 std::string exec(const Context& ctx, const std::vector<std::string>& cmd);
+
+std::string toLower(const std::string& str);
+bool iequals(const std::string& str1, const std::string& str2);
 
 void log(LogLevel logLevel, const Context& ctx, const std::string& text);
 

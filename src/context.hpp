@@ -2,6 +2,8 @@
 
 namespace mmc {
 
+enum class LogLevel { DEBUG, INFO, WARNING, ERROR };
+
 struct Context {
 
     enum class OutputMode { COPY, OVERWRITE };
@@ -15,10 +17,12 @@ struct Context {
 	OutputMode outputMode = OutputMode::COPY;
 	CompressionLevel compressionlevel  = CompressionLevel::MEDIUM;
 	int imgMinLength = 0;
-	int videoMinBitrate = 0;
+	int videoBitrate = 0;
+	int videoCrf = 0;
 	ImageCompressor imgCompressor;
 	VideoCompressor videoCompressor;
 	bool force = false;
+	LogLevel logLevel = LogLevel::INFO;
 
 	std::string currentPath;
 };
