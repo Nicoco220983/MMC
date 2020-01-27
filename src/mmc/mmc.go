@@ -158,8 +158,8 @@ func parseImageInfo(info string) (int, int, error){
 
 func isVideoCompressed(ctx Context, aPath string) (bool, error) {
 	if ctx.VideoCompressor == 0 { return false, errors.New("You should install ffmpeg") }
-	out, err := Exec(ctx, "ffprobe", "-i", aPath)
-	if err != nil { return false, err }
+	out, err := Exec(ctx, "ffmpeg", "-i", aPath)
+	if err != nil { out = err.Error() }
 	bitrate, err := parseVideoInfo(out)
 	if err != nil { return false, errors.New("Could not parse video description") }
 	return bitrate <= ctx.VideoBitrate, nil
@@ -190,7 +190,8 @@ func compressMediaFile(ctx Context, mediaType MediaType, iPath string, oPath str
 func compressImage(ctx Context, iPath string, oPath string) error {
 	if ctx.ImageCompressor == 0 { return errors.New("You should install image magick") }
 	Log(INFO, ctx, fmt.Sprintf("Compress image: %s to %s", iPath, oPath))
-	_, err := Exec(ctx, "magick", "convert", iPath, "-resize", fmt.Sprintf("%dx%d>", ctx.ImgMinLength, ctx.ImgMinLength), oPath)
+	resolution := fmt.Sprintf("%dx%d>", ctx.ImgMinLength, ctx.ImgMinLength)
+	_, err := Exec(ctx, "magick", "convert", iPath, "-resize", resolution, oPath)
 	return err
 }
 
