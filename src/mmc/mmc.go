@@ -40,7 +40,7 @@ func MMC(ctx Context) error {
 		if ctx.VideoCrf == 0 { ctx.VideoCrf = 24 }
 	}
 
-	if BinExists(ctx, "convert") { ctx.ImageCompressor = MAGICK }
+	if BinExists(ctx, "magick") { ctx.ImageCompressor = MAGICK }
 
 	if BinExists(ctx, "ffmpeg") { ctx.VideoCompressor = FFMPEG
 	} else if BinExists(ctx, "avconv") { ctx.VideoCompressor = AVCONV }
@@ -136,7 +136,7 @@ func isMediaCompressed(ctx Context, mediaType MediaType, aPath string) (bool, er
 
 func isImageCompressed(ctx Context, aPath string) (bool, error) {
 	if ctx.ImageCompressor == 0 { return false, errors.New("You should install image magick") }
-	out, err := Exec(ctx, "identify", aPath)
+	out, err := Exec(ctx, "magick", "identify", aPath)
 	if err != nil { return false, err }
 	width, height, err := parseImageInfo(out)
 	if err != nil { return false, errors.New("Could not parse image description") }
@@ -190,7 +190,7 @@ func compressMediaFile(ctx Context, mediaType MediaType, iPath string, oPath str
 func compressImage(ctx Context, iPath string, oPath string) error {
 	if ctx.ImageCompressor == 0 { return errors.New("You should install image magick") }
 	Log(INFO, ctx, fmt.Sprintf("Compress image: %s to %s", iPath, oPath))
-	_, err := Exec(ctx, "convert", iPath, "-resize", fmt.Sprintf("%dx%d>", ctx.ImgMinLength, ctx.ImgMinLength), oPath)
+	_, err := Exec(ctx, "magick", "convert", iPath, "-resize", fmt.Sprintf("%dx%d>", ctx.ImgMinLength, ctx.ImgMinLength), oPath)
 	return err
 }
 
