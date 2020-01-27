@@ -1,4 +1,4 @@
-package mmc
+package mmcompress
 
 type LogLevel int
 const (

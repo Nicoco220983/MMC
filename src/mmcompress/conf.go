@@ -1,4 +1,4 @@
-package mmc
+package mmcompress
 
 var IMAGE_EXTS = []string {
 	"jpg", "jpeg",

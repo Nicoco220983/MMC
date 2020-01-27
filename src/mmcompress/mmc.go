@@ -1,4 +1,4 @@
-package mmc
+package mmcompress
 
 import (
 	"fmt"

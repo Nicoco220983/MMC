@@ -5,10 +5,10 @@ import (
 	"os"
 	"strings"
 	"strconv"
-	"./mmc"
+	"./mmcompress"
 )
 
-const USAGE = `mmc [OPTIONS]
+const USAGE = `mmcompress [OPTIONS]
   -h/--help: Print this help.
   -i/--input PATH: Input path to compress (file or dir).
   -o/--output PATH: compression destination.
@@ -23,7 +23,7 @@ const USAGE = `mmc [OPTIONS]
 
 func main() {
 
-	ctx := mmc.NewContext()
+	ctx := mmcompress.NewContext()
 
 	i, nbArgs := 1, len(os.Args)
 	for i < nbArgs {
@@ -36,15 +36,15 @@ func main() {
 		} else if arg=="-o" || arg=="--output" {
 			i++; ctx.OutputPath = os.Args[i]
 		} else if(arg == "--overwrite"){
-			ctx.OutputMode = mmc.OVERWRITE
+			ctx.OutputMode = mmcompress.OVERWRITE
 		} else if arg=="-c" || arg=="--compression-level" {
 			i++; val := os.Args[i]
 			if strings.EqualFold(val, "S") {
-				ctx.CompressionLevel = mmc.SMALL
+				ctx.CompressionLevel = mmcompress.SMALL
 			} else if strings.EqualFold(val, "M") {
-				ctx.CompressionLevel = mmc.MEDIUM
+				ctx.CompressionLevel = mmcompress.MEDIUM
 			} else if strings.EqualFold(val, "L") {
-				ctx.CompressionLevel = mmc.LARGE
+				ctx.CompressionLevel = mmcompress.LARGE
 			} else {
 				panic(fmt.Sprintf("Unknown value for compression-level: %s", val))
 			}
@@ -55,9 +55,9 @@ func main() {
 		} else if arg=="--vid-crf" {
 			i++; ctx.VideoCrf = parseIntArg(os.Args[i])
 		} else if(arg=="-v" || arg=="--verbose"){
-			ctx.LogLevel = mmc.DEBUG
+			ctx.LogLevel = mmcompress.DEBUG
 		} else if(arg=="-q" || arg=="--quiet"){
-			ctx.LogLevel = mmc.ERROR
+			ctx.LogLevel = mmcompress.ERROR
 		} else {
 			fmt.Printf("%s\n", USAGE)
 			panic(fmt.Sprintf("[ERROR] Unknown arg: %s\n", arg))
@@ -65,7 +65,7 @@ func main() {
 		i++
 	}
 
-	err := mmc.MMC(ctx)
+	err := mmcompress.MMC(ctx)
 	if err != nil { panic(err) }
 }
 
