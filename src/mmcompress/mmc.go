@@ -24,7 +24,7 @@ func MMC(ctx Context) error {
 		if ctx.InputPath == ctx.OutputPath {
 			return errors.New("In copy mode, inputPath and outputPath cannot have same value. Use overwrite mode")
 		}
-	} else if ctx.OutputMode == "OVERWRITE" {
+	} else if ctx.OutputMode != "OVERWRITE" {
 		return fmt.Errorf("Unknown output mode: %s", ctx.OutputMode)
 	}
 
