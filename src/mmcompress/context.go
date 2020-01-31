@@ -1,5 +1,6 @@
 package mmcompress
 
+/*
 type LogLevel int
 const (
     DEBUG LogLevel = iota
@@ -20,13 +21,16 @@ const (
 	MEDIUM
 	LARGE
 )
+*/
 
 type MediaType int
+
 const (
-    IMAGE MediaType = iota + 1
+	IMAGE MediaType = iota + 1
 	VIDEO
 )
 
+/*
 type ImageCompressor int
 const (
     MAGICK ImageCompressor = iota + 1
@@ -37,26 +41,29 @@ const (
 	FFMPEG VideoCompressor = iota + 1
 	AVCONV
 )
-
-type Context struct {  
-    InputPath   string
-    OutputPath  string
-    OutputMode  OutputMode
-	CompressionLevel CompressionLevel
-	ImgMinLength int
-	VideoBitrate int
-	VideoCrf int
-	ImageCompressor ImageCompressor
-	VideoCompressor VideoCompressor
-	Force bool
-	LogLevel LogLevel
+*/
+type Context struct {
+	InputPath        string
+	OutputPath       string
+	TmpPath          string
+	OutputMode       string
+	CompressionLevel string
+	ImgMinLength     int
+	VideoBitrate     int
+	VideoCrf         int
+	ImageCompressor  string
+	VideoCompressor  string
+	Force            bool
+	LogLevel         string
 
 	CurrentPath string
 }
 
 func NewContext() Context {
 	ctx := Context{}
-	ctx.CompressionLevel = MEDIUM
-	ctx.LogLevel = INFO
+	ctx.OutputMode = "COPY"
+	ctx.CompressionLevel = "M"
+	ctx.Force = false
+	ctx.LogLevel = "INFO"
 	return ctx
 }
