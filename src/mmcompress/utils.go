@@ -97,6 +97,23 @@ func CopyFile(iPath string, oPath string) error {
 	return err
 }
 
+func MoveFile(iPath string, oPath string) error {
+	err := os.Rename(iPath, oPath)
+	if err != nil {
+		// in some situations, the move may fail (different drive on windows)
+		// in this case make a copy
+		err = CopyFile(iPath, oPath)
+		if err != nil {
+			return err
+		}
+		err = os.Remove(iPath)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func DupTime(iPath string, oPath string) error {
 	info, err := os.Stat(iPath)
 	if err != nil {

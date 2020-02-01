@@ -98,7 +98,7 @@ func GetVideoCompressor(ctx Context) string {
 
 func compressAllMedia(ctx Context, relPath string) {
 
-	fullPath := path.Join(ctx.InputPath, relPath)
+	fullPath := filepath.Join(ctx.InputPath, relPath)
 	if IsDir(fullPath) {
 
 		files, err := ioutil.ReadDir(fullPath)
@@ -107,7 +107,7 @@ func compressAllMedia(ctx Context, relPath string) {
 			return
 		}
 		for _, f := range files {
-			childPath := path.Join(relPath, f.Name())
+			childPath := filepath.Join(relPath, f.Name())
 			compressAllMedia(ctx, childPath)
 		}
 	} else {
@@ -118,10 +118,10 @@ func compressAllMedia(ctx Context, relPath string) {
 func compressMedia(ctx Context, relPath string) {
 	var err error
 	ctx.CurrentPath = relPath
-	iPath := path.Join(ctx.InputPath, relPath)
+	iPath := filepath.Join(ctx.InputPath, relPath)
 	oPath := iPath
 	if ctx.OutputMode == "COPY" {
-		oPath = path.Join(ctx.OutputPath, relPath)
+		oPath = filepath.Join(ctx.OutputPath, relPath)
 	}
 	err = os.MkdirAll(filepath.Dir(oPath), os.ModePerm)
 	if err != nil {
@@ -183,7 +183,7 @@ func compressMedia2(ctx Context, iPath string, oPath string) error {
 	/*
 		iTmpPath := iPath
 		if ctx.TmpPath != "" {
-			iTmpPath = path.Join(ctx.TmpPath, path.Base(iPath))
+			iTmpPath = filepath.Join(ctx.TmpPath, path.Base(iPath))
 			err = CopyFile(iPath, iTmpPath)
 			if err != nil {
 				return err
@@ -197,16 +197,9 @@ func compressMedia2(ctx Context, iPath string, oPath string) error {
 		return err
 	}
 	os.Remove(oPath)
-	err = os.Rename(oTmpPath, oPath)
+	err = MoveFile(oTmpPath, oPath)
 	if err != nil {
-		err = CopyFile(oTmpPath, oPath)
-		if err != nil {
-			return err
-		}
-		err = os.Remove(oTmpPath)
-		if err != nil {
-			Log("WARNING", ctx, err)
-		}
+		return err
 	}
 	err = DupTime(iPath, oPath)
 	if err != nil {
@@ -224,7 +217,7 @@ func buildTmpFilePath(ctx Context, aPath string) string {
 	if ctx.TmpPath == "" {
 		return res
 	}
-	return path.Join(ctx.TmpPath, path.Base(res))
+	return filepath.Join(ctx.TmpPath, path.Base(res))
 }
 
 func isMediaCompressed(ctx Context, mediaType MediaType, aPath string) (bool, error) {
