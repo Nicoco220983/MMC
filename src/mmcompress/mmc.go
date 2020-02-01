@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -183,7 +182,7 @@ func compressMedia2(ctx Context, iPath string, oPath string) error {
 	/*
 		iTmpPath := iPath
 		if ctx.TmpPath != "" {
-			iTmpPath = filepath.Join(ctx.TmpPath, path.Base(iPath))
+			iTmpPath = filepath.Join(ctx.TmpPath, filepath.Base(iPath))
 			err = CopyFile(iPath, iTmpPath)
 			if err != nil {
 				return err
@@ -217,7 +216,7 @@ func buildTmpFilePath(ctx Context, aPath string) string {
 	if ctx.TmpPath == "" {
 		return res
 	}
-	return filepath.Join(ctx.TmpPath, path.Base(res))
+	return filepath.Join(ctx.TmpPath, filepath.Base(res))
 }
 
 func isMediaCompressed(ctx Context, mediaType MediaType, aPath string) (bool, error) {
