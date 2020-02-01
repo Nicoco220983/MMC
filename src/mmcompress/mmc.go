@@ -199,7 +199,14 @@ func compressMedia2(ctx Context, iPath string, oPath string) error {
 	os.Remove(oPath)
 	err = os.Rename(oTmpPath, oPath)
 	if err != nil {
-		return err
+		err = CopyFile(oTmpPath, oPath)
+		if err != nil {
+			return err
+		}
+		err = os.Remove(oTmpPath)
+		if err != nil {
+			Log("WARNING", ctx, err)
+		}
 	}
 	err = DupTime(iPath, oPath)
 	if err != nil {
