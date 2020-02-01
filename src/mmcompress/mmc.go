@@ -98,7 +98,7 @@ func GetVideoCompressor(ctx Context) string {
 
 func compressAllMedia(ctx Context, relPath string) {
 
-	fullPath := JoinPaths(ctx.InputPath, relPath)
+	fullPath := filepath.Join(ctx.InputPath, relPath)
 	if IsDir(fullPath) {
 
 		files, err := ioutil.ReadDir(fullPath)
@@ -107,7 +107,7 @@ func compressAllMedia(ctx Context, relPath string) {
 			return
 		}
 		for _, f := range files {
-			childPath := JoinPaths(relPath, f.Name())
+			childPath := filepath.Join(relPath, f.Name())
 			compressAllMedia(ctx, childPath)
 		}
 	} else {
@@ -118,10 +118,10 @@ func compressAllMedia(ctx Context, relPath string) {
 func compressMedia(ctx Context, relPath string) {
 	var err error
 	ctx.CurrentPath = relPath
-	iPath := JoinPaths(ctx.InputPath, relPath)
+	iPath := filepath.Join(ctx.InputPath, relPath)
 	oPath := iPath
 	if ctx.OutputMode == "COPY" {
-		oPath = JoinPaths(ctx.OutputPath, relPath)
+		oPath = filepath.Join(ctx.OutputPath, relPath)
 	}
 	err = os.MkdirAll(filepath.Dir(oPath), os.ModePerm)
 	if err != nil {
@@ -183,7 +183,7 @@ func compressMedia2(ctx Context, iPath string, oPath string) error {
 	/*
 		iTmpPath := iPath
 		if ctx.TmpPath != "" {
-			iTmpPath = JoinPaths(ctx.TmpPath, path.Base(iPath))
+			iTmpPath = filepath.Join(ctx.TmpPath, path.Base(iPath))
 			err = CopyFile(iPath, iTmpPath)
 			if err != nil {
 				return err
@@ -217,7 +217,7 @@ func buildTmpFilePath(ctx Context, aPath string) string {
 	if ctx.TmpPath == "" {
 		return res
 	}
-	return JoinPaths(ctx.TmpPath, path.Base(res))
+	return filepath.Join(ctx.TmpPath, path.Base(res))
 }
 
 func isMediaCompressed(ctx Context, mediaType MediaType, aPath string) (bool, error) {

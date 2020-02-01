@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"path/filepath"
 	"runtime"
 	"strings"
 )
@@ -83,10 +82,6 @@ func ContainsStr(arr []string, str string) bool {
 		}
 	}
 	return false
-}
-
-func JoinPaths(paths ...string) string {
-	return filepath.FromSlash(filepath.Join(paths...))
 }
 
 func CopyFile(iPath string, oPath string) error {
